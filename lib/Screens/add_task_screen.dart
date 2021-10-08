@@ -1,5 +1,8 @@
+import 'package:daily_quotes_and_reminder_app/DataHandler/app_data.dart';
 import 'package:daily_quotes_and_reminder_app/Models/db_models.dart';
 import 'package:daily_quotes_and_reminder_app/Models/task_data.dart';
+import 'package:daily_quotes_and_reminder_app/Notification/notification_api.dart';
+import 'package:daily_quotes_and_reminder_app/Utils/boxes.dart';
 import 'package:daily_quotes_and_reminder_app/Utils/constants.dart';
 import 'package:daily_quotes_and_reminder_app/Widgets/main_button_widget.dart';
 import 'package:daily_quotes_and_reminder_app/Widgets/text_field_widget.dart';
@@ -8,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class AddTaskScreen extends StatefulWidget {
   final bool isEdit;
@@ -31,11 +35,15 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Color(0xff414F56),
+      color: MediaQuery.of(context).viewInsets.bottom != 0
+          ? Color(0xff0133875)
+          : Color(0xff757575),
+      //color: Color(0xff414F56), 133875
       child: Container(
         padding: EdgeInsets.all(20.0),
         decoration: BoxDecoration(
-          color: Color(0xff8eacbb),
+          color: Colors.white,
+          //color: Color(0xff8eacbb),
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(20.0),
             topRight: Radius.circular(20.0),
@@ -68,7 +76,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                 textInputType: TextInputType.datetime,
                 icon: Icon(
                   Icons.calendar_today_outlined,
-                  color: Colors.lime,
+                  color: Color(0xffff4081),
                   size: 30,
                 ),
                 onIconPressed: () async {
@@ -84,7 +92,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                       label: 'Set time',
                       textInputType: TextInputType.datetime,
                       icon: Icon(Icons.access_time_outlined,
-                          color: Colors.lime, size: 30),
+                          color: Color(0xffff4081), size: 30),
                       onIconPressed: () async {
                         await _selectTime();
                       },
@@ -98,8 +106,10 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                   });
                 },
                 child: Icon(
-                    _isNotificationOn ? Icons.alarm_on : Icons.alarm_off,
-                    color: Colors.lime,
+                    _isNotificationOn
+                        ? Icons.notifications_on_outlined
+                        : Icons.notifications_off_outlined,
+                    color: Color(0xffff4081),
                     size: 50),
               ),
               SizedBox(height: 10),
@@ -108,6 +118,10 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                   onTap: () async {
                     if (validate()) {
                       if (widget.isEdit) {
+                        if (widget.taskData!.isAlarmOn && !_isNotificationOn) {
+                          NotificationApi.cancelNotification(
+                              widget.taskData!.key);
+                        }
                         await DbModels.editTask(widget.taskData!,
                             title: _titleController.text,
                             dateExpected: _selectedDate,
@@ -117,9 +131,18 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                             timeCompleted: null,
                             isAlarmOn: _isNotificationOn,
                             isCompleted: false);
+                        if (_isNotificationOn) {
+                          scheduleNotification(id: widget.taskData!.key);
+                        }
                         Navigator.pop(context);
                       } else {
+                        String a = DateTime.now().toString();
+                        String b = a.substring(8, 10) +
+                            a.substring(17, 19) +
+                            a.substring(20, 26);
+                        int key = int.parse(b);
                         await DbModels.addTask(
+                            key: key,
                             title: _titleController.text,
                             dateExpected: _selectedDate,
                             dateCompleted: null,
@@ -128,6 +151,18 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                             timeCompleted: null,
                             isAlarmOn: _isNotificationOn,
                             isCompleted: false);
+                        if (_isNotificationOn) {
+                          scheduleNotification(id: key);
+                          scheduleDailyNotification(0);
+                        }
+
+                        final box = Boxes.getTaskData();
+                        int count = box.values
+                            .where(
+                                (element) => element.isCompleted ? false : true)
+                            .length;
+                        Provider.of<AppData>(context, listen: false)
+                            .updateTileDataTotalTask(count);
                         Navigator.pop(context);
                       }
                     }
@@ -166,6 +201,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
 
   Future<void> _selectTime() async {
     final TimeOfDay? result = await showTimePicker(
+      initialEntryMode: TimePickerEntryMode.input,
       context: context,
       initialTime: _selectedTime.hour == TimeOfDay.now().hour &&
               _selectedTime.minute == TimeOfDay.now().minute
@@ -270,5 +306,23 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     _timeController.dispose();
     _dateController.dispose();
     _titleController.dispose();
+  }
+
+  void scheduleNotification({int? id}) {
+    NotificationApi.showScheduledNotification(
+        id: id != null ? id : 0,
+        //payLoad: '',
+        title: 'Why haven\'t you completed me?',
+        body: _titleController.text,
+        scheduleTime: _selectedTime,
+        scheduleDate: _selectedDate);
+  }
+
+  void scheduleDailyNotification(int id) {
+    NotificationApi.showDailyNotification(
+        id: id,
+        title: 'Good morning! pretty',
+        body:
+            'You have active tasks that need completion.\nHave a great day ahead');
   }
 }

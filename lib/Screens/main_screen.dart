@@ -7,7 +7,8 @@ import 'package:hive/hive.dart';
 
 class MainScreen extends StatefulWidget {
   static const String id = 'MainScreen';
-
+  final String? payload;
+  const MainScreen({Key? key, this.payload}) : super(key: key);
   @override
   _MainScreenState createState() => _MainScreenState();
 }
@@ -56,8 +57,8 @@ class _MainScreenState extends State<MainScreen>
   void dispose() {
     super.dispose();
     tabController.dispose();
-    Hive.box('task_data').close(); //to close a particular box
-    //Hive.close(); //to close all boxes
+    //Hive.box('task_data').close(); //to close a particular box
+    Hive.close(); //to close all boxes
   }
 
   @override

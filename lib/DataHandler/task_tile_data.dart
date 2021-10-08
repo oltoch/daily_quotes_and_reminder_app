@@ -1,4 +1,5 @@
 class TaskTileData {
-  bool isChecked;
-  TaskTileData({this.isChecked = false});
+  int totalTask;
+  int filterValue;
+  TaskTileData({this.totalTask = 0, this.filterValue = 2});
 }

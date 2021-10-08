@@ -1,15 +1,12 @@
 import 'package:daily_quotes_and_reminder_app/Models/db_models.dart';
-import 'package:daily_quotes_and_reminder_app/Models/note_data.dart';
 import 'package:daily_quotes_and_reminder_app/Models/task_data.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class DeleteDialogBox extends StatelessWidget {
-  final String message = 'Confirm to delete';
-  final TaskData? taskData;
-  final NoteData? noteData;
-  final bool isTask;
-  DeleteDialogBox(this.isTask, {this.taskData, this.noteData});
+class CompletedDialogBox extends StatelessWidget {
+  final String message = 'Mark task as completed';
+  final TaskData taskData;
+  CompletedDialogBox(this.taskData);
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -54,11 +51,15 @@ class DeleteDialogBox extends StatelessWidget {
                             style: TextStyle(fontSize: 22, color: Colors.red))),
                     TextButton.icon(
                         onPressed: () {
-                          if (isTask) {
-                            DbModels.deleteTask(taskData!);
-                          } else {
-                            DbModels.deleteNote(noteData: noteData!);
-                          }
+                          DbModels.editTask(taskData,
+                              title: taskData.title,
+                              dateExpected: taskData.dateExpected,
+                              dateCompleted: DateTime.now(),
+                              timeExpected: taskData.timeExpected,
+                              timeCompleted:
+                                  TimeOfDay.now().toString().substring(10, 15),
+                              isAlarmOn: taskData.isAlarmOn,
+                              isCompleted: true);
                           Navigator.pop(context, 'yes');
                         },
                         icon: Icon(

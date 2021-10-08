@@ -22,22 +22,24 @@ class TextFieldWidget extends StatelessWidget {
 
   InputDecoration inputDecoration() {
     return InputDecoration(
-        suffixIcon: (icon != null)
-            ? IconButton(
-                icon: icon!,
-                onPressed: onIconPressed,
-              )
-            : null,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.0),
-          borderSide: BorderSide.none,
-        ),
-        filled: true,
-        fillColor: Color(0xff829EAC),
-        hintText: label,
-        hintStyle: GoogleFonts.pacifico(
-          textStyle: TextStyle(fontSize: 16, color: Colors.black54),
-        ));
+      contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+      suffixIcon: (icon != null)
+          ? IconButton(
+              icon: icon!,
+              onPressed: onIconPressed,
+            )
+          : null,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12.0),
+        borderSide: BorderSide.none,
+      ),
+      filled: true,
+      fillColor: Color(0x222979ff),
+      //fillColor: Color(0xff829EAC),
+      hintText: label,
+      hintStyle: GoogleFonts.pacifico(
+          textStyle: TextStyle(fontSize: 16, color: Colors.black54)),
+    );
   }
 
   @override
@@ -45,8 +47,8 @@ class TextFieldWidget extends StatelessWidget {
     return TextField(
         readOnly: readOnly == null || readOnly == false ? false : true,
         showCursor: true,
-        cursorColor: Color(0xffFE904B),
-        autofocus: autofocus == null || autofocus == false ? false : true,
+        cursorColor: Color(0xff1976d2),
+        autofocus: false,
         style: GoogleFonts.poppins(
           textStyle: TextStyle(
               color: validity == null || validity == true

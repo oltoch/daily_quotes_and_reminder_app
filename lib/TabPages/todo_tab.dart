@@ -1,11 +1,13 @@
+import 'package:daily_quotes_and_reminder_app/DataHandler/app_data.dart';
 import 'package:daily_quotes_and_reminder_app/Models/task_data.dart';
 import 'package:daily_quotes_and_reminder_app/Screens/add_task_screen.dart';
 import 'package:daily_quotes_and_reminder_app/Utils/boxes.dart';
-import 'package:daily_quotes_and_reminder_app/Widgets/task_tile.dart';
+import 'package:daily_quotes_and_reminder_app/Utils/constants.dart';
+import 'package:daily_quotes_and_reminder_app/Widgets/box_value_listenable_builder.dart';
+import 'package:daily_quotes_and_reminder_app/Widgets/task_text.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:hive/hive.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 class TodoTab extends StatefulWidget {
   @override
@@ -13,14 +15,15 @@ class TodoTab extends StatefulWidget {
 }
 
 class _TodoTabState extends State<TodoTab> {
-  bool isCheck = false;
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
         floatingActionButton: FloatingActionButton(
             //backgroundColor: Colors.lightBlueAccent,
-            child: Icon(Icons.add),
+            child: Icon(Icons.add, size: 36, color: Color(0xfff50057)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             onPressed: () {
               showModalBottomSheet(
                   context: context,
@@ -36,8 +39,7 @@ class _TodoTabState extends State<TodoTab> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              padding: EdgeInsets.only(
-                  top: 15.0, left: 20.0, right: 20.0, bottom: 15.0),
+              padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -47,13 +49,14 @@ class _TodoTabState extends State<TodoTab> {
                       Container(
                         child: Icon(
                           Icons.list_alt_outlined,
-                          size: 30,
-                          color: Colors.blueGrey[900],
+                          size: 40,
+                          color: Color(0xfff50057),
                         ),
                         height: 50,
                         width: 50,
                         decoration: BoxDecoration(
-                          color: Colors.lime,
+                          color: Colors.white,
+                          //color: Color(0xffff4081),
                           borderRadius: BorderRadius.circular(
                             10.0,
                           ),
@@ -62,10 +65,49 @@ class _TodoTabState extends State<TodoTab> {
                       Container(
                         child: Row(
                           children: [
-                            Icon(Icons.filter_list,
-                                size: 40, color: Colors.lime),
+                            PopupMenuButton<int>(
+                              onSelected: (item) =>
+                                  onFilterItemSelected(context, item),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10.0)),
+                              icon: Icon(Icons.filter_list,
+                                  size: 40, color: Colors.white
+                                  //color: Color(0xffff4081),
+                                  ),
+                              itemBuilder: (context) => [
+                                PopupMenuItem<int>(
+                                  value: 0,
+                                  child: Text('Show all'),
+                                ),
+                                PopupMenuItem<int>(
+                                  value: 1,
+                                  child: Text('Completed'),
+                                ),
+                                PopupMenuItem<int>(
+                                  value: 2,
+                                  child: Text('In Progress'),
+                                ),
+                              ],
+                            ),
                             SizedBox(width: 20),
-                            Icon(Icons.settings, size: 40, color: Colors.lime),
+                            PopupMenuButton(
+                              icon: Icon(Icons.settings,
+                                  size: 40, color: Colors.white),
+                              itemBuilder: (context) => [
+                                PopupMenuItem(
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.logout_outlined),
+                                      SizedBox(width: 2),
+                                      Text('Exit'),
+                                    ],
+                                  ),
+                                  onTap: () {
+                                    SystemNavigator.pop();
+                                  },
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                       ),
@@ -73,22 +115,10 @@ class _TodoTabState extends State<TodoTab> {
                   ),
                   SizedBox(height: 10.0),
                   Text(
-                    'My To-do',
-                    style: GoogleFonts.poppins(
-                      textStyle: TextStyle(
-                        color: Color(0xfffcfcfc),
-                        fontSize: 40.0,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                    'My ToDo',
+                    style: kTabLabelTextStyle,
                   ),
-                  Text('Number of Tasks',
-                      style: GoogleFonts.poppins(
-                        textStyle: TextStyle(
-                          color: Color(0xfffcfcfc),
-                          fontSize: 18,
-                        ),
-                      )),
+                  TaskText(),
                 ],
               ),
             ),
@@ -97,25 +127,19 @@ class _TodoTabState extends State<TodoTab> {
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(horizontal: 20.0),
                 decoration: BoxDecoration(
-                  color: Color(0xff8eacbb),
+                  color: Colors.white,
+                  //color: Color(0xff8eacbb),
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(20.0),
                     topRight: Radius.circular(20.0),
                   ),
                 ),
-                child: ValueListenableBuilder<Box<TaskData>>(
-                  valueListenable: Boxes.getTaskData().listenable(),
-                  builder: (context, box, _) {
-                    final taskData = box.values
-                        // .where((element) {
-                        //   //condition that mimics where clause in sql
-                        //   //checks where element matches a condition
-                        //   //return element.dateCompleted != null ? true : false;
-                        //   return true;
-                        // })
-                        .toList()
-                        .cast<TaskData>();
-                    return TaskTile(taskData: taskData);
+                child: Consumer<AppData>(
+                  builder: (context, appData, child) {
+                    return BoxValueListenableBuilder(
+                        value: Provider.of<AppData>(context, listen: false)
+                            .data
+                            .filterValue);
                   },
                 ),
               ),
@@ -124,5 +148,34 @@ class _TodoTabState extends State<TodoTab> {
         ),
       ),
     );
+  }
+
+  onFilterItemSelected(BuildContext context, int item) {
+    final box = Boxes.getTaskData().values;
+    switch (item) {
+      case 0:
+        Provider.of<AppData>(context, listen: false)
+            .updateTileDataFilterValue(0);
+        int a = box.toList().cast<TaskData>().length;
+        Provider.of<AppData>(context, listen: false).updateTileDataTotalTask(a);
+
+        break;
+      case 1:
+        Provider.of<AppData>(context, listen: false)
+            .updateTileDataFilterValue(1);
+        int a = box.toList().where((element) {
+          return element.isCompleted ? true : false;
+        }).length;
+        Provider.of<AppData>(context, listen: false).updateTileDataTotalTask(a);
+        break;
+      default:
+        Provider.of<AppData>(context, listen: false)
+            .updateTileDataFilterValue(2);
+        int a = box.toList().where((element) {
+          return !element.isCompleted ? true : false;
+        }).length;
+        Provider.of<AppData>(context, listen: false).updateTileDataTotalTask(a);
+        break;
+    }
   }
 }
