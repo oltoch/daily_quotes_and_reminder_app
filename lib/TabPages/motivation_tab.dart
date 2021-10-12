@@ -124,21 +124,28 @@ class _MotivationTabState extends State<MotivationTab> {
   }
 
   void getQuote() async {
-    //String url = 'https://quotable.io/random';
-    String url = 'https://type.fit/api/quotes';
+    String url = 'https://quotable.io/random';
+    //String url = 'https://type.fit/api/quotes';
     var response = await NetworkHelper(url: url).getData();
     if (response == 'failed') {
       return;
     }
-    //print(response['content']);
-    //print(response['tags']);
-    print(response[i]['author']);
-    print(response[i]['text']);
+    // Map map = {};
+    // for (int i = 0; i < 100; i++) {
+    //   map[response[i]['author']] = response[i]['text'];
+    // }
+    // print(map.values.elementAt(64));
+    // var box = Hive.box('quote');
+    // box.putAll(map);
+    print(response['content']);
+    print(response['tags']);
+    // print(response[65]['author']);
+    // print(response[65]['text']);
 
-    setState(() {
-      quote = response[i]['text'];
-      author = 'Author:\n' + response[i]['author'];
-      i++;
-    });
+    // setState(() {
+    //   quote = response[i]['text'];
+    //   author = 'Author:\n' + response[i]['author'];
+    //   i++;
+    // });
   }
 }
